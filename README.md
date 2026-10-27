@@ -1,8 +1,8 @@
 # Yaku's Aniyomi Extensions Repository
 
 Custom Aniyomi anime extension repository hosting high-quality extensions for:
-- **[Hanime.moe](https://hanime.moe/)** (v14.3)
-- **[Hentaini.com](https://hentaini.com/)** (v14.2)
+- **[Hanime.moe](https://hanime.moe/)** (v14.4)
+- **[Hentaini.com](https://hentaini.com/)** (v14.3)
 
 ---
 
@@ -30,23 +30,23 @@ https://raw.githubusercontent.com/yakuyakuku/aniyomi-repo/main/index.min.json
 
 You can also install or update the extension APKs directly:
 
-- **[aniyomi-en.hanimemoe-v14.3.apk](apk/aniyomi-en.hanimemoe-v14.3.apk)** (Hanime.moe Signed Release v14.3)
-- **[aniyomi-en.hentaini-v14.2.apk](apk/aniyomi-en.hentaini-v14.2.apk)** (Hentaini Signed Release v14.2)
+- **[aniyomi-en.hanimemoe-v14.4.apk](apk/aniyomi-en.hanimemoe-v14.4.apk)** (Hanime.moe Signed Release v14.4)
+- **[aniyomi-en.hentaini-v14.3.apk](apk/aniyomi-en.hentaini-v14.3.apk)** (Hentaini Signed Release v14.3)
 
 ---
 
 ## ✨ Extension Features
 
-### 🎬 Hentaini (`hentaini.com`) - v14.2
-- **Direct Video Downloads:** Extracts direct high-speed MP4 video files from BurstCloud (`BR`) and YourUpload so episodes download seamlessly with Aniyomi's internal downloader and external downloaders (like 1DM/ADM).
+### 🎬 Hentaini (`hentaini.com`) - v14.3
+- **Direct Video Downloads (100% Native In-App):** Extracts direct high-speed MP4 video files from **Mp4Upload**, **BurstCloud (`BR`)**, and **YourUpload** so episodes download natively within Aniyomi's built-in downloader (zero FFmpeg timestamp errors) as well as external downloaders.
 - **Clean Episode Numbering:** Standardized strictly as `Episode X`.
 - **Upcoming Episode Detection:** Future or unreleased episodes are labeled `Episode X (Upcoming)` with scanlator tag `Upcoming` to grey them out and clearly indicate pending releases.
 - **Strict Newest-to-Oldest Ordering:** Episodes are arranged chronologically from newest release to oldest.
 - **Rich Metadata:** Displays Studio / Producer, Censorship status, Status (Ongoing / Completed), Total Views, Episode count, and Alternative Titles.
 - **Browse & Filters:** Popular, Latest, Search queries, Censorship filters, Sort filters, and 29 Genre filters.
 
-### 🌸 Hanime.moe (`hanime.moe`) - v14.3
-- **Direct Video Downloads:** Extracts direct high-speed MKV video files (1080p, 720p, 480p) from Vimbed so downloads and offline playback work 100% reliably without HLS playlist/muxing issues.
+### 🌸 Hanime.moe (`hanime.moe`) - v14.4
+- **Direct Video Downloads (100% Native In-App):** Extracts direct high-speed MKV video files (1080p, 720p, 480p) from Vimbed so downloads complete natively inside Aniyomi at full bandwidth without HLS segment issues.
 - **Clean Episode Labeling:** Formatted strictly as `Episode X`.
 - **Upcoming Episodes:** Labeled `Episode X (Upcoming)` with scanlator tag `Upcoming` for future air dates.
 - **Strict Newest-to-Oldest Ordering:** Episodes ordered newest first.

@@ -310,6 +310,9 @@ class Hentaini :
                 player.name.equals("Yourupload", ignoreCase = true) || player.name.equals("Y", ignoreCase = true) || playerUrl.contains("yourupload.com") -> {
                     extractYourUpload(playerUrl)?.let(videoList::add)
                 }
+                player.name.contains("mp4upload", ignoreCase = true) || player.name.contains("mp4uplo", ignoreCase = true) || playerUrl.contains("mp4upload.com") -> {
+                    extractMp4upload(playerUrl)?.let(videoList::add)
+                }
                 player.name.equals("HLS", ignoreCase = true) || playerUrl.contains(".m3u8") -> {
                     val streamHeaders = Headers.Builder()
                         .add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36")
@@ -415,6 +418,28 @@ class Hentaini :
         }.getOrNull()
     }
 
+    private fun extractMp4upload(url: String): Video? {
+        return runCatching {
+            val reqHeaders = Headers.Builder()
+                .add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36")
+                .add("Referer", "https://mp4upload.com/")
+                .build()
+
+            val resp = client.newCall(GET(url, reqHeaders)).execute()
+            val html = resp.body.string()
+            val videoUrl = MP4UPLOAD_REGEX.find(html)?.groupValues?.get(1)
+                ?: MP4_FALLBACK_REGEX.find(html)?.groupValues?.get(1)
+                ?: return null
+
+            val directHeaders = Headers.Builder()
+                .add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36")
+                .add("Referer", "https://mp4upload.com/")
+                .build()
+
+            Video(videoUrl, "Hentaini - Mp4Upload (MP4)", videoUrl, headers = directHeaders)
+        }.getOrNull()
+    }
+
     override fun videoUrlParse(response: Response): String = response.request.url.toString()
 
     // ============================== Helpers ===============================
@@ -456,8 +481,8 @@ class Hentaini :
         ListPreference(screen.context).apply {
             key = PREF_QUALITY_KEY
             title = "Preferred quality"
-            entries = arrayOf("MP4", "BurstCloud", "YourUpload", "HLS")
-            entryValues = arrayOf("MP4", "BurstCloud", "YourUpload", "HLS")
+            entries = arrayOf("MP4", "Mp4Upload", "BurstCloud", "YourUpload", "HLS")
+            entryValues = arrayOf("MP4", "Mp4Upload", "BurstCloud", "YourUpload", "HLS")
             setDefaultValue(PREF_QUALITY_DEFAULT)
             summary = "%s"
             setOnPreferenceChangeListener { _, newValue ->
@@ -469,6 +494,8 @@ class Hentaini :
     companion object {
         private val DATA_FILE_ID_REGEX = Regex("""data-file-id=["']([^"']+)["']""")
         private val YOURUPLOAD_REGEX = Regex("""file:\s*["'](https?://[^"']+)["']""")
+        private val MP4UPLOAD_REGEX = Regex("""(?i)src:\s*["'](https?://[^\s"']+\.mp4(?:\?[^\s"']*)?)["']""")
+        private val MP4_FALLBACK_REGEX = Regex("""(?i)["'](https?://[^\s"']+\.mp4(?:\?[^\s"']*)?)["']""")
 
         private const val PREF_QUALITY_KEY = "preferred_quality"
         private const val PREF_QUALITY_DEFAULT = "MP4"

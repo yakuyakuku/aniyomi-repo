@@ -1,7 +1,7 @@
 ext {
     extName = 'Hanime.moe'
     extClass = '.HanimeMoe'
-    extVersionCode = 3
+    extVersionCode = 4
     isNsfw = true
 }
 
