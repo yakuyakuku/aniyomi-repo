@@ -84,3 +84,13 @@ data class PlayerEntry(
     val url: String = "",
     val code: String? = null,
 )
+
+@Serializable
+data class BurstCloudDto(
+    val purchase: BurstCloudPurchase = BurstCloudPurchase(),
+)
+
+@Serializable
+data class BurstCloudPurchase(
+    val cdnUrl: String = "",
+)

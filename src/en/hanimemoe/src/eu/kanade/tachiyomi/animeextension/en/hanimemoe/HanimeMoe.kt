@@ -312,33 +312,63 @@ class HanimeMoe :
                     val vimbedBody = vimbedResp.body.string()
 
                     val vimbedPage = extractVimbedData(vimbedBody)
+                    val dlUrl = vimbedPage?.props?.video?.downloadUrl
                     val streamUrl = vimbedPage?.props?.video?.streamUrl
 
-                    if (!streamUrl.isNullOrBlank()) {
-                        val streamVideoHeaders = headers.newBuilder()
-                            .set("Referer", srcUrl)
-                            .set("Origin", "https://demo.vimbed.com")
-                            .build()
+                    val directHeaders = Headers.Builder()
+                        .add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36")
+                        .add("Referer", "https://demo.vimbed.com/")
+                        .build()
 
-                        val hlsVideos = playlistUtils.extractFromHls(
-                            playlistUrl = streamUrl,
-                            referer = srcUrl,
-                            masterHeaders = streamVideoHeaders,
-                            videoHeaders = streamVideoHeaders,
-                            videoNameGen = { quality -> "Hanime - $quality" },
-                        )
-
-                        if (hlsVideos.isNotEmpty()) {
-                            videoList.addAll(hlsVideos)
-                        } else {
+                    // Direct MKV/MP4 files - 100% reliable for downloads and fast streaming
+                    if (!dlUrl.isNullOrBlank()) {
+                        val dlBase = dlUrl.substringBefore("/download") + "/download"
+                        listOf("1080p", "720p", "480p").forEach { res ->
+                            val resUrl = "$dlBase/$res?lang=en"
                             videoList.add(
                                 Video(
-                                    streamUrl,
-                                    "Hanime - Auto",
-                                    streamUrl,
-                                    headers = streamVideoHeaders,
+                                    resUrl,
+                                    "Hanime - $res",
+                                    resUrl,
+                                    headers = directHeaders,
                                 ),
                             )
+                        }
+                    }
+
+                    // HLS streams as alternative/backup
+                    if (!streamUrl.isNullOrBlank()) {
+                        val streamVideoHeaders = Headers.Builder()
+                            .add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36")
+                            .add("Referer", srcUrl)
+                            .add("Origin", "https://demo.vimbed.com")
+                            .build()
+
+                        try {
+                            val hlsVideos = playlistUtils.extractFromHls(
+                                playlistUrl = streamUrl,
+                                referer = srcUrl,
+                                masterHeaders = streamVideoHeaders,
+                                videoHeaders = streamVideoHeaders,
+                                videoNameGen = { quality ->
+                                    val q = if (quality.endsWith("p", ignoreCase = true)) quality else "${quality}p"
+                                    "Hanime - $q (HLS)"
+                                },
+                            )
+                            if (hlsVideos.isNotEmpty()) {
+                                videoList.addAll(hlsVideos)
+                            } else {
+                                videoList.add(
+                                    Video(
+                                        streamUrl,
+                                        "Hanime - Auto (HLS)",
+                                        streamUrl,
+                                        headers = streamVideoHeaders,
+                                    ),
+                                )
+                            }
+                        } catch (e: Exception) {
+                            // Fallback
                         }
                     }
                 } catch (e: Exception) {
@@ -359,13 +389,14 @@ class HanimeMoe :
             }
         }
 
-        val prefQuality = preferences.getString(PREF_QUALITY_KEY, PREF_QUALITY_DEFAULT)
+        val prefQuality = preferences.getString(PREF_QUALITY_KEY, PREF_QUALITY_DEFAULT).orEmpty()
         return videoList.sortedWith(
-            compareByDescending { it.quality.contains(prefQuality.orEmpty()) },
+            compareByDescending<Video> { !it.quality.contains("(HLS)") }
+                .thenByDescending { it.quality.contains(prefQuality, ignoreCase = true) },
         )
     }
 
-    override fun videoUrlParse(response: Response): String = throw UnsupportedOperationException("Not used")
+    override fun videoUrlParse(response: Response): String = response.request.url.toString()
 
     // ============================== Helpers ===============================
 

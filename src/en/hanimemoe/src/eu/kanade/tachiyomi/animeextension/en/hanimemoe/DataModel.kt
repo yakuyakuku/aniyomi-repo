@@ -148,4 +148,6 @@ data class VimbedVideo(
     val streamUrl: String? = null,
     @SerialName("poster_url")
     val posterUrl: String? = null,
+    @SerialName("download_url")
+    val downloadUrl: String? = null,
 )

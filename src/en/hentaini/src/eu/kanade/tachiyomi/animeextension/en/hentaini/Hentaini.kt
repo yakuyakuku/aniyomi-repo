@@ -298,65 +298,124 @@ class Hentaini :
         }.getOrDefault(emptyList())
 
         val videoList = mutableListOf<Video>()
-        val videoHeaders = headers.newBuilder()
-            .set("Referer", "$baseUrl/")
-            .set("Origin", baseUrl)
-            .build()
 
         for (player in players) {
             val playerUrl = player.url
             if (playerUrl.isBlank()) continue
 
-            if (player.name.equals("HLS", ignoreCase = true) || playerUrl.contains(".m3u8")) {
-                try {
-                    val hlsVideos = playlistUtils.extractFromHls(
-                        playlistUrl = playerUrl,
-                        referer = "$baseUrl/",
-                        masterHeaders = videoHeaders,
-                        videoHeaders = videoHeaders,
-                        videoNameGen = { quality -> "Hentaini - $quality" },
-                    )
-                    if (hlsVideos.isNotEmpty()) {
-                        videoList.addAll(hlsVideos)
-                    } else {
+            when {
+                player.name.equals("BR", ignoreCase = true) || playerUrl.contains("burstcloud.co") -> {
+                    extractBurstCloud(playerUrl)?.let(videoList::add)
+                }
+                player.name.equals("Yourupload", ignoreCase = true) || player.name.equals("Y", ignoreCase = true) || playerUrl.contains("yourupload.com") -> {
+                    extractYourUpload(playerUrl)?.let(videoList::add)
+                }
+                player.name.equals("HLS", ignoreCase = true) || playerUrl.contains(".m3u8") -> {
+                    val streamHeaders = Headers.Builder()
+                        .add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36")
+                        .add("Referer", "$baseUrl/")
+                        .add("Origin", baseUrl)
+                        .build()
+
+                    try {
+                        val hlsVideos = playlistUtils.extractFromHls(
+                            playlistUrl = playerUrl,
+                            referer = "$baseUrl/",
+                            masterHeaders = streamHeaders,
+                            videoHeaders = streamHeaders,
+                            videoNameGen = { quality -> "Hentaini - $quality (HLS)" },
+                        )
+                        if (hlsVideos.isNotEmpty()) {
+                            videoList.addAll(hlsVideos)
+                        } else {
+                            videoList.add(
+                                Video(
+                                    playerUrl,
+                                    "Hentaini - HLS (Stream)",
+                                    playerUrl,
+                                    headers = streamHeaders,
+                                ),
+                            )
+                        }
+                    } catch (e: Exception) {
                         videoList.add(
                             Video(
                                 playerUrl,
-                                "Hentaini - HLS (HD)",
+                                "Hentaini - HLS (Stream)",
                                 playerUrl,
-                                headers = videoHeaders,
+                                headers = streamHeaders,
                             ),
                         )
                     }
-                } catch (e: Exception) {
-                    videoList.add(
-                        Video(
-                            playerUrl,
-                            "Hentaini - HLS (HD)",
-                            playerUrl,
-                            headers = videoHeaders,
-                        ),
-                    )
                 }
-            } else if (playerUrl.endsWith(".mp4")) {
-                videoList.add(
-                    Video(
-                        playerUrl,
-                        "Hentaini - ${player.name}",
-                        playerUrl,
-                        headers = videoHeaders,
-                    ),
-                )
             }
         }
 
-        val prefQuality = preferences.getString(PREF_QUALITY_KEY, PREF_QUALITY_DEFAULT)
+        val prefQuality = preferences.getString(PREF_QUALITY_KEY, PREF_QUALITY_DEFAULT).orEmpty()
         return videoList.sortedWith(
-            compareByDescending { it.quality.contains(prefQuality.orEmpty()) },
+            compareByDescending<Video> { !it.quality.contains("(HLS)") } // Prefer direct MP4 for downloading & seeking
+                .thenByDescending { it.quality.contains(prefQuality, ignoreCase = true) },
         )
     }
 
-    override fun videoUrlParse(response: Response): String = throw UnsupportedOperationException("Not used")
+    private fun extractBurstCloud(url: String): Video? {
+        return runCatching {
+            val embedHeaders = Headers.Builder()
+                .add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36")
+                .add("Referer", "https://www.burstcloud.co/")
+                .build()
+
+            val resp = client.newCall(GET(url, embedHeaders)).execute()
+            val html = resp.body.string()
+            val fileId = DATA_FILE_ID_REGEX.find(html)?.groupValues?.get(1) ?: return null
+
+            val formBody = okhttp3.FormBody.Builder()
+                .add("fileId", fileId)
+                .build()
+
+            val reqHeaders = Headers.Builder()
+                .add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36")
+                .add("Referer", url)
+                .add("X-Requested-With", "XMLHttpRequest")
+                .build()
+
+            val playRequest = okhttp3.Request.Builder()
+                .url("https://www.burstcloud.co/file/play-request/")
+                .headers(reqHeaders)
+                .post(formBody)
+                .build()
+
+            val playResp = client.newCall(playRequest).execute()
+            val playBody = playResp.body.string()
+            val dto = json.decodeFromString<BurstCloudDto>(playBody)
+            val cdnUrl = dto.purchase.cdnUrl
+            if (cdnUrl.isBlank()) return null
+
+            val directHeaders = Headers.Builder()
+                .add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36")
+                .add("Referer", "https://www.burstcloud.co/")
+                .build()
+
+            Video(cdnUrl, "Hentaini - BurstCloud (MP4)", cdnUrl, headers = directHeaders)
+        }.getOrNull()
+    }
+
+    private fun extractYourUpload(url: String): Video? {
+        return runCatching {
+            val reqHeaders = Headers.Builder()
+                .add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36")
+                .add("Referer", "https://www.yourupload.com/")
+                .build()
+
+            val resp = client.newCall(GET(url, reqHeaders)).execute()
+            val html = resp.body.string()
+            val videoUrl = YOURUPLOAD_REGEX.find(html)?.groupValues?.get(1) ?: return null
+
+            Video(videoUrl, "Hentaini - YourUpload (MP4)", videoUrl, headers = reqHeaders)
+        }.getOrNull()
+    }
+
+    override fun videoUrlParse(response: Response): String = response.request.url.toString()
 
     // ============================== Helpers ===============================
 
@@ -397,8 +456,8 @@ class Hentaini :
         ListPreference(screen.context).apply {
             key = PREF_QUALITY_KEY
             title = "Preferred quality"
-            entries = arrayOf("HD", "1080p", "720p", "480p")
-            entryValues = arrayOf("HD", "1080p", "720p", "480p")
+            entries = arrayOf("MP4", "BurstCloud", "YourUpload", "HLS")
+            entryValues = arrayOf("MP4", "BurstCloud", "YourUpload", "HLS")
             setDefaultValue(PREF_QUALITY_DEFAULT)
             summary = "%s"
             setOnPreferenceChangeListener { _, newValue ->
@@ -408,7 +467,10 @@ class Hentaini :
     }
 
     companion object {
+        private val DATA_FILE_ID_REGEX = Regex("""data-file-id=["']([^"']+)["']""")
+        private val YOURUPLOAD_REGEX = Regex("""file:\s*["'](https?://[^"']+)["']""")
+
         private const val PREF_QUALITY_KEY = "preferred_quality"
-        private const val PREF_QUALITY_DEFAULT = "HD"
+        private const val PREF_QUALITY_DEFAULT = "MP4"
     }
 }

@@ -2,10 +2,10 @@
   {
     "name": "Aniyomi: Hanime.moe",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.hanimemoe",
-    "apk": "aniyomi-en.hanimemoe-v14.2.apk",
+    "apk": "aniyomi-en.hanimemoe-v14.3.apk",
     "lang": "en",
-    "code": 2,
-    "version": "14.2",
+    "code": 3,
+    "version": "14.3",
     "nsfw": 1,
     "sources": [
       {
@@ -19,10 +19,10 @@
   {
     "name": "Aniyomi: Hentaini",
     "pkg": "eu.kanade.tachiyomi.animeextension.en.hentaini",
-    "apk": "aniyomi-en.hentaini-v14.1.apk",
+    "apk": "aniyomi-en.hentaini-v14.2.apk",
     "lang": "en",
-    "code": 1,
-    "version": "14.1",
+    "code": 2,
+    "version": "14.2",
     "nsfw": 1,
     "sources": [
       {
