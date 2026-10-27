@@ -46,7 +46,7 @@ data class VideoItem(
     val publishedAt: String? = null,
     @SerialName("released_at")
     val releasedAt: String? = null,
-    val playable: Boolean? = true,
+    val playable: Boolean = true,
     val rank: Long? = null,
     val number: Long? = null,
 )
@@ -67,11 +67,23 @@ data class VideoDetails(
     val thumbnail: String? = null,
     val duration: Long? = null,
     val views: Long? = null,
+    @SerialName("views_human")
+    val viewsHuman: String? = null,
+    @SerialName("likes_count")
+    val likesCount: Long? = null,
+    @SerialName("dislikes_count")
+    val dislikesCount: Long? = null,
+    @SerialName("downloads_count")
+    val downloadsCount: Long? = null,
+    val rank: Long? = null,
     val brand: BrandItem? = null,
     @SerialName("published_at")
     val publishedAt: String? = null,
     @SerialName("released_at")
     val releasedAt: String? = null,
+    val playable: Boolean = true,
+    @SerialName("is_censored")
+    val isCensored: Boolean? = null,
     val number: Long? = null,
     val blurb: String? = null,
     val synopsis: String? = null,
@@ -93,6 +105,8 @@ data class SeriesDetails(
     val id: Long? = null,
     val slug: String? = null,
     val title: String? = null,
+    @SerialName("alt_titles")
+    val altTitles: List<String> = emptyList(),
     val cover: String? = null,
     val banner: String? = null,
     val synopsis: String? = null,
@@ -104,6 +118,10 @@ data class SeriesDetails(
     val tags: List<TagItem> = emptyList(),
     @SerialName("videos_count")
     val videosCount: Int? = null,
+    val rank: Long? = null,
+    val views: Long? = null,
+    @SerialName("views_human")
+    val viewsHuman: String? = null,
 )
 
 @Serializable
