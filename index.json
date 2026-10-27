@@ -15,5 +15,22 @@
         "baseUrl": "https://hanime.moe"
       }
     ]
+  },
+  {
+    "name": "Aniyomi: Hentaini",
+    "pkg": "eu.kanade.tachiyomi.animeextension.en.hentaini",
+    "apk": "aniyomi-en.hentaini-v14.1.apk",
+    "lang": "en",
+    "code": 1,
+    "version": "14.1",
+    "nsfw": 1,
+    "sources": [
+      {
+        "name": "Hentaini",
+        "lang": "en",
+        "id": "5293962333712512719",
+        "baseUrl": "https://hentaini.com"
+      }
+    ]
   }
 ]
