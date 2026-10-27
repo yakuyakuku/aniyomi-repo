@@ -1,0 +1,19 @@
+[
+  {
+    "name": "Aniyomi: Hanime.moe",
+    "pkg": "eu.kanade.tachiyomi.animeextension.en.hanimemoe",
+    "apk": "aniyomi-en.hanimemoe-v14.1.apk",
+    "lang": "en",
+    "code": 1,
+    "version": "14.1",
+    "nsfw": 1,
+    "sources": [
+      {
+        "name": "Hanime.moe",
+        "lang": "en",
+        "id": "8271234836430806929",
+        "baseUrl": "https://hanime.moe"
+      }
+    ]
+  }
+]

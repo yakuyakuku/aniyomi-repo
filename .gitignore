@@ -1,0 +1,14 @@
+# Build outputs and caches
+.gradle/
+build/
+*/build/
+*/*/build/
+*/*/*/build/
+
+# Local properties
+local.properties
+
+# IDE files
+.idea/
+*.iml
+.kotlin/
